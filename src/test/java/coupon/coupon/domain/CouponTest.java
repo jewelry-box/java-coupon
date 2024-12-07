@@ -263,4 +263,24 @@ class CouponTest {
         // then
         assertThat(coupon.getDiscountAmount()).isEqualTo(newDiscountAmount);
     }
+
+    @DisplayName("최소 주문 금액을 변경한다.")
+    @Test
+    void updateMinimumOrderPrice() {
+        // given
+        String name = "냥인의쿠폰";
+        BigDecimal discountAmount = BigDecimal.valueOf(1_000);
+        BigDecimal minimumOrderPrice = BigDecimal.valueOf(5_000);
+        CouponCategory couponCategory = CouponCategory.FOOD;
+        LocalDateTime issueStartedAt = LocalDateTime.of(2024, 10, 16, 0, 0, 0, 0);
+        LocalDateTime issueEndedAt = LocalDateTime.of(2024, 10, 26, 23, 59, 59, 999_999_000);
+        Coupon coupon = new Coupon(name, discountAmount, minimumOrderPrice, couponCategory, issueStartedAt, issueEndedAt);
+        BigDecimal newMinimumOrderPrice = BigDecimal.valueOf(6_000);
+
+        // when
+        coupon.updateMinimumOrderPrice(newMinimumOrderPrice);
+
+        // then
+        assertThat(coupon.getMinimumOrderPrice()).isEqualTo(newMinimumOrderPrice);
+    }
 }

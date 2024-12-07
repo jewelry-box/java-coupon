@@ -35,4 +35,11 @@ public class CouponService {
 
         coupon.updateDiscountAmount(newDiscountAmount);
     }
+
+    @Transactional
+    public void updateMinimumOrderPrice(Long couponId, BigDecimal newMinimumOrderPrice) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. couponId: %d ".formatted(couponId)));
+        coupon.updateMinimumOrderPrice(newMinimumOrderPrice);
+    }
 }

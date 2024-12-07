@@ -152,6 +152,11 @@ public class Coupon implements Serializable {
         this.discountAmount = newDiscountAmount;
     }
 
+    public void updateMinimumOrderPrice(BigDecimal newMinimumOrderPrice) {
+        validateMinimumOrderPrice(newMinimumOrderPrice);
+        this.minimumOrderPrice = newMinimumOrderPrice;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

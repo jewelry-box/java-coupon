@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +49,11 @@ public class CouponService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. couponId: %d ".formatted(couponId)));
 
         coupon.updateDiscountAmount(newDiscountAmount);
+        try {
+            couponRepository.flush();
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new RuntimeException("할인 금액을 업데이트하는 도중에 다른 사용자가 데이터를 변경하였습니다. couponId: %d".formatted(couponId));
+        }
     }
 
     @Transactional
@@ -55,5 +61,10 @@ public class CouponService {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. couponId: %d ".formatted(couponId)));
         coupon.updateMinimumOrderPrice(newMinimumOrderPrice);
+        try {
+            couponRepository.flush();
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new RuntimeException("최소 주문 금액을 업데이트하는 도중에 다른 사용자가 데이터를 변경하였습니다. couponId: %d".formatted(couponId));
+        }
     }
 }

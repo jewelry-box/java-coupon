@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -66,6 +67,9 @@ public class Coupon implements Serializable {
 
     @Column(name = "issue_ended_at", nullable = false)
     private LocalDateTime issueEndedAt;
+
+    @Version
+    private Integer version;
 
     public Coupon(String name, BigDecimal discountAmount, BigDecimal minimumOrderPrice, CouponCategory couponCategory,
             LocalDateTime issueStartedAt, LocalDateTime issueEndedAt) {

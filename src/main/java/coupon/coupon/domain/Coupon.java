@@ -19,7 +19,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
+@DynamicUpdate
 @Table(name = "coupon")
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

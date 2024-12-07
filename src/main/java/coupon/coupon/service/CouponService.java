@@ -2,6 +2,7 @@ package coupon.coupon.service;
 
 import coupon.coupon.domain.Coupon;
 import coupon.coupon.domain.repository.CouponRepository;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -25,5 +26,13 @@ public class CouponService {
     public Coupon getCoupon(long couponId) {
         return couponRepository.findById(couponId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. couponId: %d ".formatted(couponId)));
+    }
+
+    @Transactional
+    public void updateDiscountAmount(Long couponId, BigDecimal newDiscountAmount) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. couponId: %d ".formatted(couponId)));
+
+        coupon.updateDiscountAmount(newDiscountAmount);
     }
 }

@@ -147,6 +147,11 @@ public class Coupon implements Serializable {
         }
     }
 
+    public void updateDiscountAmount(BigDecimal newDiscountAmount) {
+        validateDiscountAmount(newDiscountAmount);
+        this.discountAmount = newDiscountAmount;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

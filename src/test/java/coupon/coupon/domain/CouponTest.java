@@ -1,5 +1,6 @@
 package coupon.coupon.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
@@ -241,5 +242,25 @@ class CouponTest {
                     new Coupon(name, discountAmount, minimumOrderPrice, couponCategory, issueStartedAt, issueEndedAt))
                     .isInstanceOf(IllegalArgumentException.class);
         }
+    }
+
+    @DisplayName("쿠폰 할인 금액을 변경한다.")
+    @Test
+    void updateDiscountAmount() {
+        // given
+        String name = "냥인의쿠폰";
+        BigDecimal discountAmount = BigDecimal.valueOf(1_000);
+        BigDecimal minimumOrderPrice = BigDecimal.valueOf(5_000);
+        CouponCategory couponCategory = CouponCategory.FOOD;
+        LocalDateTime issueStartedAt = LocalDateTime.of(2024, 10, 16, 0, 0, 0, 0);
+        LocalDateTime issueEndedAt = LocalDateTime.of(2024, 10, 26, 23, 59, 59, 999_999_000);
+        Coupon coupon = new Coupon(name, discountAmount, minimumOrderPrice, couponCategory, issueStartedAt, issueEndedAt);
+        BigDecimal newDiscountAmount = BigDecimal.valueOf(2_000);
+
+        // when
+        coupon.updateDiscountAmount(newDiscountAmount);
+
+        // then
+        assertThat(coupon.getDiscountAmount()).isEqualTo(newDiscountAmount);
     }
 }

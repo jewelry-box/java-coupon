@@ -73,4 +73,17 @@ class CouponServiceTest {
                 () -> verify(couponRepository, never()).findById(dbCoupon.getId())
         );
     }
+
+    @Test
+    void 쿠폰_할인_금액을_변경한다() {
+        Coupon coupon = couponService.save(Fixture.createCoupon());
+
+        couponService.updateDiscountAmount(coupon.getId(), 2000);
+
+        Long updatedAmount = couponService.findById(coupon.getId())
+                .getDiscountAmount()
+                .getAmount();
+
+        assertThat(updatedAmount).isEqualTo(2000);
+    }
 }

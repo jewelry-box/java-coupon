@@ -66,4 +66,9 @@ public class Coupon {
                     "할인율은 " + MIN_DISCOUNT_RATE + "% 이상 " + MAX_DISCOUNT_RATE + "% 이하여야 합니다.");
         }
     }
+
+    public void setDiscountAmount(DiscountAmount discountAmount) {
+        validate(discountAmount, minOderAmount);
+        this.discountAmount = discountAmount;
+    }
 }

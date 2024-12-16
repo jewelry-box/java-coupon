@@ -3,6 +3,7 @@ package coupon.service;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
@@ -85,5 +86,13 @@ class CouponServiceTest {
                 .getAmount();
 
         assertThat(updatedAmount).isEqualTo(2000);
+    }
+
+    @Test
+    void 제약조건에_부합하지_않으면_쿠폰_할인_금액을_변경할_수_없다() {
+        Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
+
+        assertThatThrownBy(() -> couponService.updateDiscountAmount(validCoupon.getId(), 6500))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

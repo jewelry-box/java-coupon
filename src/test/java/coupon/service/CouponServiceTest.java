@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import coupon.domain.Coupon;
 import coupon.repository.CouponRepository;
 import coupon.support.Fixture;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,85 +36,93 @@ class CouponServiceTest {
     @SpyBean
     private CouponRepository couponRepository;
 
-    @Test
-    void 복제지연테스트() {
-        Coupon saved = couponService.save(Fixture.createCoupon());
+    @Nested
+    class 복제_지연 {
 
-        assertThatCode(() -> couponService.findById(saved.getId()))
-                .doesNotThrowAnyException();
+        @Test
+        void 쿠폰_생성_후_바로_조회시_복제_지연으로_인한_예외가_발생하지_않는다() {
+            Coupon saved = couponService.save(Fixture.createCoupon());
+
+            assertThatCode(() -> couponService.findById(saved.getId()))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        void 조회_시_캐시에_없으면_DB_조회_후_캐시_쓰기한다() {
+            Coupon dbCoupon = couponService.save(Fixture.createCoupon());
+
+            Coupon firstSearch = couponService.findById(dbCoupon.getId());
+
+            Cache couponCache = requireNonNull(cacheManager.getCache(COUPON_CACHE_NAME));
+
+            assertAll(
+                    () -> assertThat(firstSearch.getId()).isEqualTo(dbCoupon.getId()),
+                    () -> verify(couponRepository, atLeastOnce()).findById(dbCoupon.getId()),
+                    () -> assertThat(couponCache.get(dbCoupon.getId(), Coupon.class))
+                            .extracting(Coupon::getId)
+                            .isEqualTo(dbCoupon.getId())
+            );
+        }
+
+        @Test
+        void 조회_시_캐시에_있으면_DB를_조회하지_않는다() {
+            Coupon dbCoupon = couponService.save(Fixture.createCoupon());
+            couponService.findById(dbCoupon.getId());
+
+            clearInvocations(couponRepository);
+
+            Coupon secondSearch = couponService.findById(dbCoupon.getId());
+
+            assertAll(
+                    () -> assertThat(secondSearch.getId()).isEqualTo(dbCoupon.getId()),
+                    () -> verify(couponRepository, never()).findById(dbCoupon.getId())
+            );
+        }
     }
 
-    @Test
-    void 조회_시_캐시에_없으면_DB_조회_후_캐시_쓰기한다() {
-        Coupon dbCoupon = couponService.save(Fixture.createCoupon());
+    @Nested
+    class 쿠폰_금액_수정 {
 
-        Coupon firstSearch = couponService.findById(dbCoupon.getId());
+        @Test
+        void 쿠폰_할인_금액을_변경한다() {
+            Coupon coupon = couponService.save(Fixture.createCoupon());
 
-        Cache couponCache = requireNonNull(cacheManager.getCache(COUPON_CACHE_NAME));
+            couponService.updateDiscountAmount(coupon.getId(), 2000);
 
-        assertAll(
-                () -> assertThat(firstSearch.getId()).isEqualTo(dbCoupon.getId()),
-                () -> verify(couponRepository, atLeastOnce()).findById(dbCoupon.getId()),
-                () -> assertThat(couponCache.get(dbCoupon.getId(), Coupon.class))
-                        .extracting(Coupon::getId)
-                        .isEqualTo(dbCoupon.getId())
-        );
-    }
+            Long updatedAmount = couponService.findById(coupon.getId())
+                    .getDiscountAmount()
+                    .getAmount();
 
-    @Test
-    void 조회_시_캐시에_있으면_DB를_조회하지_않는다() {
-        Coupon dbCoupon = couponService.save(Fixture.createCoupon());
-        couponService.findById(dbCoupon.getId());
+            assertThat(updatedAmount).isEqualTo(2000);
+        }
 
-        clearInvocations(couponRepository);
+        @Test
+        void 제약조건에_부합하지_않으면_쿠폰_할인_금액을_변경할_수_없다() {
+            Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
 
-        Coupon secondSearch = couponService.findById(dbCoupon.getId());
+            assertThatThrownBy(() -> couponService.updateDiscountAmount(validCoupon.getId(), 500))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
 
-        assertAll(
-                () -> assertThat(secondSearch.getId()).isEqualTo(dbCoupon.getId()),
-                () -> verify(couponRepository, never()).findById(dbCoupon.getId())
-        );
-    }
+        @Test
+        void 최소_주문_금액을_변경한다() {
+            Coupon coupon = couponService.save(Fixture.createCoupon());
 
-    @Test
-    void 쿠폰_할인_금액을_변경한다() {
-        Coupon coupon = couponService.save(Fixture.createCoupon());
+            couponService.updateMinOrderAmount(coupon.getId(), 25000);
 
-        couponService.updateDiscountAmount(coupon.getId(), 2000);
+            Long updatedAmount = couponService.findById(coupon.getId())
+                    .getMinOderAmount()
+                    .getAmount();
 
-        Long updatedAmount = couponService.findById(coupon.getId())
-                .getDiscountAmount()
-                .getAmount();
+            assertThat(updatedAmount).isEqualTo(25000);
+        }
 
-        assertThat(updatedAmount).isEqualTo(2000);
-    }
+        @Test
+        void 제약조건에_부합하지_않으면_최소_주문_금액을_변경할_수_없다() {
+            Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
 
-    @Test
-    void 제약조건에_부합하지_않으면_쿠폰_할인_금액을_변경할_수_없다() {
-        Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
-
-        assertThatThrownBy(() -> couponService.updateDiscountAmount(validCoupon.getId(), 500))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void 최소_주문_금액을_변경한다() {
-        Coupon coupon = couponService.save(Fixture.createCoupon());
-
-        couponService.updateMinOrderAmount(coupon.getId(), 25000);
-
-        Long updatedAmount = couponService.findById(coupon.getId())
-                .getMinOderAmount()
-                .getAmount();
-
-        assertThat(updatedAmount).isEqualTo(25000);
-    }
-
-    @Test
-    void 제약조건에_부합하지_않으면_최소_주문_금액을_변경할_수_없다() {
-        Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
-
-        assertThatThrownBy(() -> couponService.updateMinOrderAmount(validCoupon.getId(), 1000))
-                .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> couponService.updateMinOrderAmount(validCoupon.getId(), 1000))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
     }
 }

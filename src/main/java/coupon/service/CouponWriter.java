@@ -2,6 +2,7 @@ package coupon.service;
 
 import coupon.domain.Coupon;
 import coupon.domain.DiscountAmount;
+import coupon.domain.MinOrderAmount;
 import coupon.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,13 @@ public class CouponWriter {
     public Coupon updateDiscountAmount(Coupon coupon, long amount) {
         DiscountAmount discountAmount = new DiscountAmount(amount);
         coupon.setDiscountAmount(discountAmount);
+        return couponRepository.save(coupon);
+    }
+
+    @Transactional
+    public Coupon updateMinOrderAmount(Coupon coupon, int amount) {
+        MinOrderAmount minOrderAmount = new MinOrderAmount(amount);
+        coupon.setMinOrderAmount(minOrderAmount);
         return couponRepository.save(coupon);
     }
 }

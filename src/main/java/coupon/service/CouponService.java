@@ -19,8 +19,13 @@ public class CouponService {
         return couponReader.findById(couponId);
     }
 
-    public Coupon updateDiscountAmount(long couponId, long amount) {
+    public Coupon updateDiscountAmount(long couponId, long discountAmount) {
         Coupon coupon = couponReader.findById(couponId);
-        return couponWriter.updateDiscountAmount(coupon, amount);
+        return couponWriter.updateDiscountAmount(coupon, discountAmount);
+    }
+
+    public Coupon updateMinOrderAmount(long couponId, int minOrderAmount) {
+        Coupon coupon = couponReader.findById(couponId);
+        return couponWriter.updateMinOrderAmount(coupon, minOrderAmount);
     }
 }

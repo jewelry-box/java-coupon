@@ -92,7 +92,28 @@ class CouponServiceTest {
     void 제약조건에_부합하지_않으면_쿠폰_할인_금액을_변경할_수_없다() {
         Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
 
-        assertThatThrownBy(() -> couponService.updateDiscountAmount(validCoupon.getId(), 6500))
+        assertThatThrownBy(() -> couponService.updateDiscountAmount(validCoupon.getId(), 500))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 최소_주문_금액을_변경한다() {
+        Coupon coupon = couponService.save(Fixture.createCoupon());
+
+        couponService.updateMinOrderAmount(coupon.getId(), 25000);
+
+        Long updatedAmount = couponService.findById(coupon.getId())
+                .getMinOderAmount()
+                .getAmount();
+
+        assertThat(updatedAmount).isEqualTo(25000);
+    }
+
+    @Test
+    void 제약조건에_부합하지_않으면_최소_주문_금액을_변경할_수_없다() {
+        Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
+
+        assertThatThrownBy(() -> couponService.updateMinOrderAmount(validCoupon.getId(), 1000))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

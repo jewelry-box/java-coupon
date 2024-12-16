@@ -45,13 +45,13 @@ class CouponTest {
 
         @Test
         void 할인율_조건에_부합하면_할인_금액을_변경한다() {
-            DiscountAmount validDiscountAmount = new DiscountAmount(1000);
+            DiscountAmount discountAmount = new DiscountAmount(1000);
             MinOrderAmount minOrderAmount = new MinOrderAmount(30000);
-            Coupon coupon = new Coupon(COUPON_NAME, validDiscountAmount, minOrderAmount, Category.FOOD,
+            Coupon coupon = new Coupon(COUPON_NAME, discountAmount, minOrderAmount, Category.FOOD,
                     ISSUABLE_PERIOD);
 
-            DiscountAmount invalidDiscountAmount = new DiscountAmount(2000);
-            coupon.setDiscountAmount(invalidDiscountAmount);
+            DiscountAmount validDiscountAmount = new DiscountAmount(2000);
+            coupon.setDiscountAmount(validDiscountAmount);
 
             Long updatedAmount = coupon.getDiscountAmount().getAmount();
             assertThat(updatedAmount).isEqualTo(2000);
@@ -59,13 +59,44 @@ class CouponTest {
 
         @Test
         void 할인율_조건에_부합하지_않으면_예외가_발생한다() {
-            DiscountAmount validDiscountAmount = new DiscountAmount(1000);
+            DiscountAmount discountAmount = new DiscountAmount(1000);
             MinOrderAmount minOrderAmount = new MinOrderAmount(30000);
-            Coupon coupon = new Coupon(COUPON_NAME, validDiscountAmount, minOrderAmount, Category.FOOD,
+            Coupon coupon = new Coupon(COUPON_NAME, discountAmount, minOrderAmount, Category.FOOD,
                     ISSUABLE_PERIOD);
 
             DiscountAmount invalidDiscountAmount = new DiscountAmount(6500);
             assertThatThrownBy(() -> coupon.setDiscountAmount(invalidDiscountAmount))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("할인율은 3% 이상 20% 이하여야 합니다.");
+        }
+    }
+
+    @Nested
+    class 최소_주문_금액_변경 {
+
+        @Test
+        void 할인율_조건에_부합하면_최소_주문_금액을_변경한다() {
+            DiscountAmount discountAmount = new DiscountAmount(2000);
+            MinOrderAmount minOrderAmount = new MinOrderAmount(30000);
+            Coupon coupon = new Coupon(COUPON_NAME, discountAmount, minOrderAmount, Category.FOOD,
+                    ISSUABLE_PERIOD);
+
+            MinOrderAmount validMinOrderAmount = new MinOrderAmount(40000);
+            coupon.setMinOrderAmount(validMinOrderAmount);
+
+            Long updatedAmount = coupon.getMinOderAmount().getAmount();
+            assertThat(updatedAmount).isEqualTo(40000);
+        }
+
+        @Test
+        void 할인율_조건에_부합하지_않으면_예외가_발생한다() {
+            DiscountAmount discountAmount = new DiscountAmount(2000);
+            MinOrderAmount minOrderAmount = new MinOrderAmount(30000);
+            Coupon coupon = new Coupon(COUPON_NAME, discountAmount, minOrderAmount, Category.FOOD,
+                    ISSUABLE_PERIOD);
+
+            MinOrderAmount invalidMinOrderAmount = new MinOrderAmount(100000);
+            assertThatThrownBy(() -> coupon.setMinOrderAmount(invalidMinOrderAmount))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("할인율은 3% 이상 20% 이하여야 합니다.");
         }

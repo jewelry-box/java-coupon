@@ -36,3 +36,7 @@ coupon.datasource:
     username: root
     password: root
     maximumPoolSize: 10
+
+redisson:
+  host: localhost
+  port: 46379

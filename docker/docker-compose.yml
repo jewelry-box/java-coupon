@@ -49,6 +49,16 @@ services:
       coupon_dock_net:
         ipv4_address: 172.20.0.20
 
+  redis-lock:
+    image: redis:7.0.12
+    container_name: redis-lock
+    restart: always
+    ports:
+      - "46379:6379"
+    networks:
+      coupon_dock_net:
+        ipv4_address: 172.20.0.21
+
 networks:
   coupon_dock_net:
     driver: bridge

@@ -27,7 +27,7 @@ public class CouponWriter {
     }
 
     @Transactional
-    public Coupon updateMinOrderAmount(long couponId, int amount) {
+    public Coupon updateMinOrderAmount(long couponId, long amount) {
         MinOrderAmount minOrderAmount = new MinOrderAmount(amount);
         Coupon coupon = findCoupon(couponId);
         return coupon.setMinOrderAmount(minOrderAmount);

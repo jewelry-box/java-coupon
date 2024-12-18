@@ -67,13 +67,6 @@ public class Coupon {
         this.term = term;
     }
 
-    private void validateDiscountRate(DiscountAmount discountAmount, MinimumOrderAmount minimumOrderAmount) {
-        BigDecimal discountRate = discountAmount.getDiscountRate(minimumOrderAmount);
-        if (discountRate.compareTo(MINIMUM_DISCOUNT_RATE) < 0 || discountRate.compareTo(MAXIMUM_DISCOUNT_RATE) > 0) {
-            throw new CouponException(DISCOUNT_RATE_MESSAGE);
-        }
-    }
-
     private void validateCategoryNull(Category category) {
         if (Objects.isNull(category)) {
             throw new CouponException(CATEGORY_NON_NULL_MESSAGE);
@@ -83,6 +76,19 @@ public class Coupon {
     public void issue(LocalDateTime issuedAt) {
         if (term.doesNotContain(issuedAt)) {
             throw new CouponException(COUPON_ISSUE_MESSAGE);
+        }
+    }
+
+    public void changeMinimumOrderAmount(long amount) {
+        MinimumOrderAmount newMinimumOrderAmount = new MinimumOrderAmount(amount);
+        validateDiscountRate(discountAmount, newMinimumOrderAmount);
+        minimumOrderAmount.change(newMinimumOrderAmount);
+    }
+
+    private void validateDiscountRate(DiscountAmount discountAmount, MinimumOrderAmount minimumOrderAmount) {
+        BigDecimal discountRate = discountAmount.getDiscountRate(minimumOrderAmount);
+        if (discountRate.compareTo(MINIMUM_DISCOUNT_RATE) < 0 || discountRate.compareTo(MAXIMUM_DISCOUNT_RATE) > 0) {
+            throw new CouponException(DISCOUNT_RATE_MESSAGE);
         }
     }
 

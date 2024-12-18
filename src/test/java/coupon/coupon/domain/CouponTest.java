@@ -93,4 +93,15 @@ class CouponTest {
                 .isInstanceOf(CouponException.class)
                 .hasMessage("쿠폰을 발급할 수 있는 기한이 지났습니다.");
     }
+
+    @DisplayName("쿠폰 정책을 준수하면서 최소 주문 금액을 수정할 수 있다.")
+    @Test
+    void changeMinimumOrderAmount() {
+        // given
+        Coupon coupon = CouponFixture.create(LocalDate.now(), LocalDate.now().plusDays(7));
+        long amount = 5000;
+
+        // when & then
+        assertThatNoException().isThrownBy(() -> coupon.changeMinimumOrderAmount(amount));
+    }
 }

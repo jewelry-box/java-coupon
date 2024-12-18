@@ -38,6 +38,10 @@ public class MinimumOrderAmount {
         }
     }
 
+    public void change(MinimumOrderAmount amount) {
+        minimumOrderAmount = amount.getMinimumOrderAmount();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)

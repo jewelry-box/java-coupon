@@ -98,10 +98,36 @@ class CouponTest {
     @Test
     void changeMinimumOrderAmount() {
         // given
-        Coupon coupon = CouponFixture.create(LocalDate.now(), LocalDate.now().plusDays(7));
-        long amount = 5000;
+        Coupon coupon = CouponFixture.create(1000, 30000);
+        long newMinimumOrderAmount = 5000;
 
         // when & then
-        assertThatNoException().isThrownBy(() -> coupon.changeMinimumOrderAmount(amount));
+        assertThatNoException().isThrownBy(() -> coupon.changeMinimumOrderAmount(newMinimumOrderAmount));
+    }
+
+    @DisplayName("할인율이 제약조건보다 낮으면 최소 주문 금액을 수정할 수 없다.")
+    @Test
+    void cannotChangeMinimumOrderAmountIfDiscountRateUnder() {
+        // given
+        Coupon coupon = CouponFixture.create(1000, 30000);
+        long newMinimumOrderAmount = 50000;
+
+        // when & then
+        assertThatThrownBy(() -> coupon.changeMinimumOrderAmount(newMinimumOrderAmount))
+                .isInstanceOf(CouponException.class)
+                .hasMessage("할인율은 3% 이상, 20% 이하이어야 합니다.");
+    }
+
+    @DisplayName("할인율이 제약조건보다 높으면 최소 주문 금액을 수정할 수 없다.")
+    @Test
+    void cannotChangeMinimumOrderAmountIfDiscountRateOver() {
+        // given
+        Coupon coupon = CouponFixture.create(2000, 10000);
+        long newMinimumOrderAmount = 8000;
+
+        // when & then
+        assertThatThrownBy(() -> coupon.changeMinimumOrderAmount(newMinimumOrderAmount))
+                .isInstanceOf(CouponException.class)
+                .hasMessage("할인율은 3% 이상, 20% 이하이어야 합니다.");
     }
 }

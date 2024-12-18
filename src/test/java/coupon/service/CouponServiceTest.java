@@ -1,6 +1,7 @@
 package coupon.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import coupon.cache.CachedCoupon;
@@ -10,13 +11,17 @@ import coupon.domain.vo.DiscountAmount;
 import coupon.domain.vo.IssuePeriod;
 import coupon.domain.vo.MinimumOrderPrice;
 import coupon.domain.vo.Name;
+import coupon.exception.ErrorMessage;
+import coupon.exception.GlobalCustomException;
 import coupon.repository.CachedCouponRepository;
 import coupon.repository.CouponRepository;
 import java.time.LocalDateTime;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +112,7 @@ class CouponServiceTest {
     }
 
     @Test
+    @Disabled
     @DisplayName("동시에 쿠폰 할인 금액과 최소 주문 금액을 수정하면 제약조건을 위반하는 쿠폰이 생성된다.")
     void updateDiscountAmountAndMinimumOrderPriceSimultaneously() throws Exception {
         // given
@@ -134,5 +140,30 @@ class CouponServiceTest {
             assertThat(updatedMinimumOrderPrice.getValue()).isEqualTo(40_000);
             assertThat(discountRate).isEqualTo(2);
         });
+    }
+
+    @Test
+    @DisplayName("동시에 쿠폰 할인 금액과 최소 주문 금액을 수정할 때 제약조건을 위반하는 동시성 이슈를 해결한다.")
+    void updateDiscountAmountAndMinimumOrderPriceSimultaneously2() throws Exception {
+        // given
+        Coupon createdCoupon = couponRepository.save(coupon);
+        MinimumOrderPrice minimumOrderPrice = new MinimumOrderPrice(40_000);
+        DiscountAmount discountAmount = new DiscountAmount(1_000);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        // when & then
+        Future<?> future1 = executorService.submit(
+                () -> couponService.updateMinimumOrderPrice(minimumOrderPrice, createdCoupon.getId()));
+        Future<?> future2 = executorService.submit(
+                () -> couponService.updateDiscountAmount(discountAmount, createdCoupon.getId()));
+        assertThatThrownBy(() -> {
+            future1.get();
+            future2.get();
+        }).isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(GlobalCustomException.class) // 내부 원인 클래스 확인
+                .extracting(Throwable::getCause)
+                .extracting(Throwable::getMessage)
+                .isEqualTo(ErrorMessage.INVALID_DISCOUNT_RATE_RANGE.getMessage());
     }
 }

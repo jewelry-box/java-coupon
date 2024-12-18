@@ -31,7 +31,6 @@ public class DistributedLockExecutor {
 
         // lockName 템플릿 처리
         String lockName = resolveLockName(distributedLock.lockName(), parameters, args);
-        System.out.println("lockName: " + lockName);
         RLock rLock = redissonClient.getLock(lockName);
 
         try {

@@ -136,7 +136,7 @@ class CouponTest {
     void changeDiscountAmount() {
         // given
         Coupon coupon = CouponFixture.create(1000, 30000);
-        long newDiscountAmount = 2000;
+        DiscountAmount newDiscountAmount = new DiscountAmount(2000);
 
         // when & then
         assertThatNoException().isThrownBy(() -> coupon.changeDiscountAmount(newDiscountAmount));
@@ -147,7 +147,7 @@ class CouponTest {
     void cannotChangeDiscountAmountIfDiscountRateUnder() {
         // given
         Coupon coupon = CouponFixture.create(2000, 60000);
-        long newDiscountAmount = 1000;
+        DiscountAmount newDiscountAmount = new DiscountAmount(1000);
 
         // when & then
         assertThatThrownBy(() -> coupon.changeDiscountAmount(newDiscountAmount))
@@ -160,7 +160,7 @@ class CouponTest {
     void cannotChangeDiscountAmountIfDiscountRateOver() {
         // given
         Coupon coupon = CouponFixture.create(3000, 40000);
-        long newDiscountAmount = 1000;
+        DiscountAmount newDiscountAmount = new DiscountAmount(1000);
 
         // when & then
         assertThatThrownBy(() -> coupon.changeDiscountAmount(newDiscountAmount))

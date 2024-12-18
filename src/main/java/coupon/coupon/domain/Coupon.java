@@ -12,9 +12,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import org.hibernate.annotations.DynamicUpdate;
 import coupon.CouponException;
 
 @Entity
+@DynamicUpdate
 public class Coupon {
 
     public static final String COUPON_ISSUE_MESSAGE = "쿠폰을 발급할 수 있는 기한이 지났습니다.";

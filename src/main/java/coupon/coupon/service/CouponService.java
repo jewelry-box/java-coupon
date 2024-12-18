@@ -1,5 +1,6 @@
 package coupon.coupon.service;
 
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import coupon.cache.CacheService;
@@ -33,6 +34,7 @@ public class CouponService {
     }
 
     @Transactional
+    @CachePut(value = "coupons", key = "#p0")
     public void updateCouponMinimumOrderAmount(long id, MinimumOrderAmountRequest request) {
         MinimumOrderAmount minimumOrderAmount = request.toMinimumOrderAmount();
         Coupon coupon = cacheService.getCoupon(id);
@@ -40,6 +42,7 @@ public class CouponService {
     }
 
     @Transactional
+    @CachePut(value = "coupons", key = "#p0")
     public void updateCouponDiscountAmount(long id, DiscountAmountRequest request) {
         DiscountAmount discountAmount = request.toDiscountAmount();
         Coupon coupon = cacheService.getCoupon(id);

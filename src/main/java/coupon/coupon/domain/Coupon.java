@@ -87,7 +87,6 @@ public class Coupon {
     public void changeDiscountAmount(DiscountAmount discountAmount) {
         validateDiscountRate(discountAmount, minimumOrderAmount);
         this.discountAmount.change(discountAmount);
-
     }
 
     private void validateDiscountRate(DiscountAmount discountAmount, MinimumOrderAmount minimumOrderAmount) {

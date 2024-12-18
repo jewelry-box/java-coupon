@@ -15,7 +15,8 @@ create table if not exists coupon
     minimum_order_amount DECIMAL(10, 2)                                           NOT NULL,
     category             ENUM ('FASHION', 'HOME_APPLIANCES', 'FURNITURE', 'FOOD') NOT NULL,
     start_at             DATETIME(6)                                              NOT NULL,
-    end_at               DATETIME(6)                                              NOT NULL
+    end_at               DATETIME(6)                                              NOT NULL,
+    version              BIGINT                                                   NOT NULL
 );
 
 create table if not exists member_coupon

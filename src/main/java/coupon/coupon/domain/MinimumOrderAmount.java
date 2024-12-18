@@ -39,7 +39,7 @@ public class MinimumOrderAmount {
     }
 
     public void change(MinimumOrderAmount amount) {
-        minimumOrderAmount = amount.getMinimumOrderAmount();
+        minimumOrderAmount = amount.minimumOrderAmount;
     }
 
     @Override

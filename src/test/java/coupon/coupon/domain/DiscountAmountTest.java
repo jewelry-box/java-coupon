@@ -59,4 +59,18 @@ class DiscountAmountTest {
         //then
         assertThat(discountRate.intValue()).isEqualTo(25);
     }
+
+    @DisplayName("최소 주문 금액을 변경할 수 있다.")
+    @Test
+    void canChangeMinimumOrderAmount() {
+        // given
+        DiscountAmount discountAmount = new DiscountAmount(5000);
+        DiscountAmount newDiscountAmount = new DiscountAmount(10000);
+
+        //when
+        discountAmount.change(newDiscountAmount);
+
+        //then
+        assertThat(discountAmount).isEqualTo(newDiscountAmount);
+    }
 }

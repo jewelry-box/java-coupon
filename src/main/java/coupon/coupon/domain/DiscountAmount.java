@@ -57,6 +57,10 @@ public class DiscountAmount {
                 .divide(minimumOrderAmount.getMinimumOrderAmount(), 0, RoundingMode.DOWN);
     }
 
+    public void change(DiscountAmount amount) {
+        discountAmount = amount.discountAmount;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)

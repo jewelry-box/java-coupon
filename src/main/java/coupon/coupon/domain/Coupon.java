@@ -85,6 +85,13 @@ public class Coupon {
         minimumOrderAmount.change(newMinimumOrderAmount);
     }
 
+    public void changeDiscountAmount(long amount) {
+        DiscountAmount newDiscountAmount = new DiscountAmount(amount);
+        validateDiscountRate(newDiscountAmount, minimumOrderAmount);
+        discountAmount.change(discountAmount);
+
+    }
+
     private void validateDiscountRate(DiscountAmount discountAmount, MinimumOrderAmount minimumOrderAmount) {
         BigDecimal discountRate = discountAmount.getDiscountRate(minimumOrderAmount);
         if (discountRate.compareTo(MINIMUM_DISCOUNT_RATE) < 0 || discountRate.compareTo(MAXIMUM_DISCOUNT_RATE) > 0) {

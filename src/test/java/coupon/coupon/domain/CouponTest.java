@@ -130,4 +130,41 @@ class CouponTest {
                 .isInstanceOf(CouponException.class)
                 .hasMessage("할인율은 3% 이상, 20% 이하이어야 합니다.");
     }
+
+    @DisplayName("쿠폰 정책을 준수하면서 최소 주문 금액을 수정할 수 있다.")
+    @Test
+    void changeDiscountAmount() {
+        // given
+        Coupon coupon = CouponFixture.create(1000, 30000);
+        long newDiscountAmount = 2000;
+
+        // when & then
+        assertThatNoException().isThrownBy(() -> coupon.changeDiscountAmount(newDiscountAmount));
+    }
+
+    @DisplayName("할인율이 제약조건보다 낮으면 최소 주문 금액을 수정할 수 없다.")
+    @Test
+    void cannotChangeDiscountAmountIfDiscountRateUnder() {
+        // given
+        Coupon coupon = CouponFixture.create(2000, 60000);
+        long newDiscountAmount = 1000;
+
+        // when & then
+        assertThatThrownBy(() -> coupon.changeDiscountAmount(newDiscountAmount))
+                .isInstanceOf(CouponException.class)
+                .hasMessage("할인율은 3% 이상, 20% 이하이어야 합니다.");
+    }
+
+    @DisplayName("할인율이 제약조건보다 높으면 최소 주문 금액을 수정할 수 없다.")
+    @Test
+    void cannotChangeDiscountAmountIfDiscountRateOver() {
+        // given
+        Coupon coupon = CouponFixture.create(3000, 40000);
+        long newDiscountAmount = 1000;
+
+        // when & then
+        assertThatThrownBy(() -> coupon.changeDiscountAmount(newDiscountAmount))
+                .isInstanceOf(CouponException.class)
+                .hasMessage("할인율은 3% 이상, 20% 이하이어야 합니다.");
+    }
 }

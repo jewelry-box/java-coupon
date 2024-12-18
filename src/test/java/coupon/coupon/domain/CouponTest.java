@@ -99,7 +99,7 @@ class CouponTest {
     void changeMinimumOrderAmount() {
         // given
         Coupon coupon = CouponFixture.create(1000, 30000);
-        long newMinimumOrderAmount = 5000;
+        MinimumOrderAmount newMinimumOrderAmount = new MinimumOrderAmount(5000);
 
         // when & then
         assertThatNoException().isThrownBy(() -> coupon.changeMinimumOrderAmount(newMinimumOrderAmount));
@@ -110,7 +110,7 @@ class CouponTest {
     void cannotChangeMinimumOrderAmountIfDiscountRateUnder() {
         // given
         Coupon coupon = CouponFixture.create(1000, 30000);
-        long newMinimumOrderAmount = 50000;
+        MinimumOrderAmount newMinimumOrderAmount = new MinimumOrderAmount(50000);
 
         // when & then
         assertThatThrownBy(() -> coupon.changeMinimumOrderAmount(newMinimumOrderAmount))
@@ -123,7 +123,7 @@ class CouponTest {
     void cannotChangeMinimumOrderAmountIfDiscountRateOver() {
         // given
         Coupon coupon = CouponFixture.create(2000, 10000);
-        long newMinimumOrderAmount = 8000;
+        MinimumOrderAmount newMinimumOrderAmount = new MinimumOrderAmount(8000);
 
         // when & then
         assertThatThrownBy(() -> coupon.changeMinimumOrderAmount(newMinimumOrderAmount))

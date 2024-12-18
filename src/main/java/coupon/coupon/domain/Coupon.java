@@ -79,10 +79,9 @@ public class Coupon {
         }
     }
 
-    public void changeMinimumOrderAmount(long amount) {
-        MinimumOrderAmount newMinimumOrderAmount = new MinimumOrderAmount(amount);
-        validateDiscountRate(discountAmount, newMinimumOrderAmount);
-        minimumOrderAmount.change(newMinimumOrderAmount);
+    public void changeMinimumOrderAmount(MinimumOrderAmount minimumOrderAmount) {
+        validateDiscountRate(discountAmount, minimumOrderAmount);
+        this.minimumOrderAmount.change(minimumOrderAmount);
     }
 
     public void changeDiscountAmount(DiscountAmount discountAmount) {

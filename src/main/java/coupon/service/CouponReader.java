@@ -5,7 +5,6 @@ import coupon.repository.CouponRepository;
 import coupon.util.FallbackExecutor;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +16,6 @@ public class CouponReader {
     private final FallbackExecutor fallbackExecutor;
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "coupon", key = "#couponId")
     public Coupon findById(long couponId) {
         Supplier<Coupon> retryFindById = () -> couponRepository.findById(couponId)
                 .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));

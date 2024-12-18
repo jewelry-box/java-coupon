@@ -2,6 +2,8 @@ package coupon.service;
 
 import coupon.domain.Coupon;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,15 +17,18 @@ public class CouponService {
         return couponWriter.save(coupon);
     }
 
+    @Cacheable(value = "coupon", key = "#couponId")
     public Coupon findById(long couponId) {
         return couponReader.findById(couponId);
     }
 
+    @CachePut(value = "coupon", key = "#couponId")
     public Coupon updateDiscountAmount(long couponId, long discountAmount) {
         return couponWriter.updateDiscountAmount(couponId, discountAmount);
     }
 
-    public Coupon updateMinOrderAmount(long couponId, int minOrderAmount) {
+    @CachePut(value = "coupon", key = "#couponId")
+    public Coupon updateMinOrderAmount(long couponId, long minOrderAmount) {
         return couponWriter.updateMinOrderAmount(couponId, minOrderAmount);
     }
 }

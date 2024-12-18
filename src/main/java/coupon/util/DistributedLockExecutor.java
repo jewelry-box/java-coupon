@@ -25,12 +25,10 @@ public class DistributedLockExecutor {
         Method method = signature.getMethod();
 
         DistributedLock distributedLock = method.getAnnotation(DistributedLock.class);
-        // 파라미터 이름과 값 가져오기
         Object[] args = proceedingJoinPoint.getArgs();
         Parameter[] parameters = method.getParameters();
-
-        // lockName 템플릿 처리
         String lockName = resolveLockName(distributedLock.lockName(), parameters, args);
+
         RLock rLock = redissonClient.getLock(lockName);
 
         try {

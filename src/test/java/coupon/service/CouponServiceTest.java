@@ -136,15 +136,22 @@ class CouponServiceTest {
 
         @Test
         void 사용자_2명이_동시에_쿠폰을_수정하는_경우_제약조건에_부합하지_않으면_예외가_발생한다() throws InterruptedException {
-            Coupon coupon = couponService.save(Fixture.createCoupon(2000, 30000));
+            long beforeDiscountAmount = 2000;
+            long beforeMinOrderAmount = 30000;
+            Coupon coupon = couponService.save(Fixture.createCoupon(beforeDiscountAmount, beforeMinOrderAmount));
 
-            ExecutorService executorService = Executors.newFixedThreadPool(2);
-            CountDownLatch countDownLatch = new CountDownLatch(2);
+            int concurrencyCount = 2;
+            ExecutorService executorService = Executors.newFixedThreadPool(concurrencyCount);
+            CountDownLatch countDownLatch = new CountDownLatch(concurrencyCount);
             AtomicInteger exceptionCount = new AtomicInteger(0);
 
+            long afterDiscountAmount = 1000;
+            long afterMinOrderAmount = 40000;
+
+            // DiscountAmount 변경
             executorService.submit(() -> {
                 try {
-                    couponService.updateDiscountAmount(coupon.getId(), 1000);
+                    couponService.updateDiscountAmount(coupon.getId(), afterDiscountAmount);
                 } catch (IllegalArgumentException e) {
                     exceptionCount.incrementAndGet();
                 } finally {
@@ -152,9 +159,10 @@ class CouponServiceTest {
                 }
             });
 
+            // MinOrderAmount 변경
             executorService.submit(() -> {
                 try {
-                    couponService.updateMinOrderAmount(coupon.getId(), 40000);
+                    couponService.updateMinOrderAmount(coupon.getId(), afterMinOrderAmount);
                 } catch (IllegalArgumentException e) {
                     exceptionCount.incrementAndGet();
                 } finally {
@@ -164,20 +172,27 @@ class CouponServiceTest {
 
             countDownLatch.await();
 
-            assertThat(exceptionCount.get()).isEqualTo(1);
+            assertThat(exceptionCount.get()).isOne();
         }
 
         @Test
         void 사용자_2명이_동시에_쿠폰을_수정하는_경우_제약조건에_부합하면_예외가_발생하지_않는다() throws InterruptedException {
-            Coupon coupon = couponService.save(Fixture.createCoupon(2000, 30000));
+            long beforeDiscountAmount = 2000;
+            long beforeMinOrderAmount = 30000;
+            Coupon coupon = couponService.save(Fixture.createCoupon(beforeDiscountAmount, beforeMinOrderAmount));
 
-            ExecutorService executorService = Executors.newFixedThreadPool(2);
-            CountDownLatch countDownLatch = new CountDownLatch(2);
+            int concurrencyCount = 2;
+            ExecutorService executorService = Executors.newFixedThreadPool(concurrencyCount);
+            CountDownLatch countDownLatch = new CountDownLatch(concurrencyCount);
             AtomicInteger exceptionCount = new AtomicInteger(0);
 
+            long afterDiscountAmount = 2500;
+            long afterMinOrderAmount = 40000;
+
+            // DiscountAmount 변경
             executorService.submit(() -> {
                 try {
-                    couponService.updateDiscountAmount(coupon.getId(), 2500);
+                    couponService.updateDiscountAmount(coupon.getId(), afterDiscountAmount);
                 } catch (IllegalArgumentException e) {
                     exceptionCount.incrementAndGet();
                 } finally {
@@ -185,9 +200,10 @@ class CouponServiceTest {
                 }
             });
 
+            // MinOrderAmount 변경
             executorService.submit(() -> {
                 try {
-                    couponService.updateMinOrderAmount(coupon.getId(), 40000);
+                    couponService.updateMinOrderAmount(coupon.getId(), afterMinOrderAmount);
                 } catch (IllegalArgumentException e) {
                     exceptionCount.incrementAndGet();
                 } finally {
@@ -197,7 +213,15 @@ class CouponServiceTest {
 
             countDownLatch.await();
 
-            assertThat(exceptionCount.get()).isZero();
+            Coupon updatedCoupon = couponService.findById(coupon.getId());
+            long updatedDiscountAmount = updatedCoupon.getDiscountAmount().getAmount();
+            long updatedMinOrderAmount = updatedCoupon.getMinOderAmount().getAmount();
+
+            assertAll(
+                    () -> assertThat(exceptionCount.get()).isZero(),
+                    () -> assertThat(updatedDiscountAmount).isEqualTo(afterDiscountAmount),
+                    () -> assertThat(updatedMinOrderAmount).isEqualTo(afterMinOrderAmount)
+            );
         }
     }
 }

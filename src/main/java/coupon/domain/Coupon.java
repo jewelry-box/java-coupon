@@ -72,6 +72,16 @@ public class Coupon extends BaseTime {
         this.issuePeriod = issuePeriod;
     }
 
+    public void updateDiscountAmount(DiscountAmount discountAmount) {
+        validateDiscountRate(discountAmount, this.minimumOrderPrice);
+        this.discountAmount = discountAmount;
+    }
+
+    public void updateMinimumOrderPrice(MinimumOrderPrice minimumOrderPrice) {
+        validateDiscountRate(this.discountAmount, minimumOrderPrice);
+        this.minimumOrderPrice = minimumOrderPrice;
+    }
+
     private void validateDiscountRate(DiscountAmount discountAmount, MinimumOrderPrice minimumOrderPrice) {
         int discountRate = discountAmount.calculateDiscountRate(minimumOrderPrice.getValue());
         if (discountRate < DISCOUNT_RATE_MINIMUM || discountRate > DISCOUNT_RATE_MAXIMUM) {

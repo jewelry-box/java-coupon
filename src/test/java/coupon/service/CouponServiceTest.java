@@ -11,6 +11,7 @@ import coupon.domain.vo.MinimumOrderPrice;
 import coupon.domain.vo.Name;
 import coupon.repository.CachedCouponRepository;
 import coupon.repository.CouponRepository;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +30,9 @@ class CouponServiceTest {
 
     @Autowired
     private CouponRepository couponRepository;
+
+    @Autowired
+    private EntityManager em;
 
     private Coupon coupon;
 
@@ -58,16 +62,47 @@ class CouponServiceTest {
         // given
         Coupon createdCoupon = couponRepository.save(coupon);
         cachedCouponRepository.save(new CachedCoupon(createdCoupon));
-
-        Coupon updatedCoupon = new Coupon(createdCoupon.getId(), new Name("수정된 쿠폰이름"),
-                createdCoupon.getDiscountAmount(), createdCoupon.getMinimumOrderPrice(), createdCoupon.getCategory(),
-                createdCoupon.getIssuePeriod());
+        DiscountAmount discountAmount = new DiscountAmount(1_500);
 
         // when
-        couponService.update(updatedCoupon);
+        couponService.updateDiscountAmount(discountAmount, createdCoupon.getId());
 
         // then
         CachedCoupon cachedCoupon = cachedCouponRepository.findById(createdCoupon.getId()).get();
-        assertThat(cachedCoupon.getCoupon().getName().getValue()).isEqualTo("수정된 쿠폰이름");
+        assertThat(cachedCoupon.getCoupon().getDiscountAmount().getValue()).isEqualTo(1_500);
+    }
+
+    @Test
+    @DisplayName("쿠폰 할인 금액을 수정한다.")
+    void updateDiscountAmount() {
+        // given
+        Coupon createdCoupon = couponRepository.save(coupon);
+        cachedCouponRepository.save(new CachedCoupon(createdCoupon));
+        DiscountAmount discountAmount = new DiscountAmount(1_500);
+
+        // when
+        couponService.updateDiscountAmount(discountAmount, createdCoupon.getId());
+
+        // then
+        DiscountAmount updatedDiscountAmount = couponService.getCouponInReplicationLag(createdCoupon.getId())
+                .getDiscountAmount();
+        assertThat(updatedDiscountAmount.getValue()).isEqualTo(1_500);
+    }
+
+    @Test
+    @DisplayName("쿠폰 최소 주문 금액을 수정한다.")
+    void updateMinimumOrderPrice() {
+        // given
+        Coupon createdCoupon = couponRepository.save(coupon);
+        cachedCouponRepository.save(new CachedCoupon(createdCoupon));
+        MinimumOrderPrice minimumOrderPrice = new MinimumOrderPrice(30_001);
+
+        // when
+        couponService.updateMinimumOrderPrice(minimumOrderPrice, createdCoupon.getId());
+
+        // then
+        MinimumOrderPrice updatedMinimumOrderPrice = couponService.getCouponInReplicationLag(createdCoupon.getId())
+                .getMinimumOrderPrice();
+        assertThat(updatedMinimumOrderPrice.getValue()).isEqualTo(30_001);
     }
 }

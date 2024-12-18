@@ -1,6 +1,8 @@
 package coupon.service;
 
 import coupon.domain.Coupon;
+import coupon.domain.vo.DiscountAmount;
+import coupon.domain.vo.MinimumOrderPrice;
 import coupon.exception.ErrorMessage;
 import coupon.exception.GlobalCustomException;
 import coupon.repository.CouponRepository;
@@ -23,7 +25,19 @@ public class CouponService {
     }
 
     @Transactional
-    public void update(Coupon coupon) {
+    public void updateDiscountAmount(DiscountAmount discountAmount, Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new GlobalCustomException(ErrorMessage.COUPON_NOT_FOUND));
+        coupon.updateDiscountAmount(discountAmount);
+        couponRepository.save(coupon);
+        couponCacheManager.update(coupon);
+    }
+
+    @Transactional
+    public void updateMinimumOrderPrice(MinimumOrderPrice minimumOrderPrice, Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new GlobalCustomException(ErrorMessage.COUPON_NOT_FOUND));
+        coupon.updateMinimumOrderPrice(minimumOrderPrice);
         couponRepository.save(coupon);
         couponCacheManager.update(coupon);
     }

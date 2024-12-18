@@ -13,6 +13,10 @@ import static org.mockito.Mockito.verify;
 import coupon.domain.Coupon;
 import coupon.repository.CouponRepository;
 import coupon.support.Fixture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,6 +127,77 @@ class CouponServiceTest {
 
             assertThatThrownBy(() -> couponService.updateMinOrderAmount(validCoupon.getId(), 1000))
                     .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+
+    @Nested
+    class 쿠폰_금액_수정_동시성_테스트 {
+
+        @Test
+        void 사용자_2명이_동시에_쿠폰을_수정하는_경우_제약조건에_부합하지_않으면_예외가_발생한다() throws InterruptedException {
+            Coupon coupon = couponService.save(Fixture.createCoupon(2000, 30000));
+
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
+            CountDownLatch countDownLatch = new CountDownLatch(2);
+            AtomicInteger exceptionCount = new AtomicInteger(0);
+
+            executorService.submit(() -> {
+                try {
+                    couponService.updateDiscountAmount(coupon.getId(), 1000);
+                } catch (IllegalArgumentException e) {
+                    exceptionCount.incrementAndGet();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+
+            executorService.submit(() -> {
+                try {
+                    couponService.updateMinOrderAmount(coupon.getId(), 40000);
+                } catch (IllegalArgumentException e) {
+                    exceptionCount.incrementAndGet();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+
+            countDownLatch.await();
+
+            assertThat(exceptionCount.get()).isEqualTo(1);
+        }
+
+        @Test
+        void 사용자_2명이_동시에_쿠폰을_수정하는_경우_제약조건에_부합하면_예외가_발생하지_않는다() throws InterruptedException {
+            Coupon coupon = couponService.save(Fixture.createCoupon(2000, 30000));
+
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
+            CountDownLatch countDownLatch = new CountDownLatch(2);
+            AtomicInteger exceptionCount = new AtomicInteger(0);
+
+            executorService.submit(() -> {
+                try {
+                    couponService.updateDiscountAmount(coupon.getId(), 2500);
+                } catch (IllegalArgumentException e) {
+                    exceptionCount.incrementAndGet();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+
+            executorService.submit(() -> {
+                try {
+                    couponService.updateMinOrderAmount(coupon.getId(), 40000);
+                } catch (IllegalArgumentException e) {
+                    exceptionCount.incrementAndGet();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+
+            countDownLatch.await();
+
+            assertThat(exceptionCount.get()).isZero();
         }
     }
 }

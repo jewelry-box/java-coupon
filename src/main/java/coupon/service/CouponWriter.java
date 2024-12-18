@@ -20,16 +20,21 @@ public class CouponWriter {
     }
 
     @Transactional
-    public Coupon updateDiscountAmount(Coupon coupon, long amount) {
+    public Coupon updateDiscountAmount(long couponId, long amount) {
         DiscountAmount discountAmount = new DiscountAmount(amount);
-        coupon.setDiscountAmount(discountAmount);
-        return couponRepository.save(coupon);
+        Coupon coupon = findCoupon(couponId);
+        return coupon.setDiscountAmount(discountAmount);
     }
 
     @Transactional
-    public Coupon updateMinOrderAmount(Coupon coupon, int amount) {
+    public Coupon updateMinOrderAmount(long couponId, int amount) {
         MinOrderAmount minOrderAmount = new MinOrderAmount(amount);
-        coupon.setMinOrderAmount(minOrderAmount);
-        return couponRepository.save(coupon);
+        Coupon coupon = findCoupon(couponId);
+        return coupon.setMinOrderAmount(minOrderAmount);
+    }
+
+    private Coupon findCoupon(long couponId) {
+        return couponRepository.findByIdForUpdate(couponId)
+                .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
     }
 }

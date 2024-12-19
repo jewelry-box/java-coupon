@@ -10,6 +10,7 @@ import coupon.coupon.domain.MinimumOrderAmount;
 import coupon.coupon.repository.CouponRepository;
 import coupon.coupon.service.dto.DiscountAmountRequest;
 import coupon.coupon.service.dto.MinimumOrderAmountRequest;
+import coupon.util.Retry;
 
 @Service
 @Transactional(readOnly = true)
@@ -33,6 +34,7 @@ public class CouponService {
         return cacheService.getCoupon(id);
     }
 
+    @Retry
     @Transactional
     @CachePut(value = "coupons", key = "#p0")
     public void updateCouponMinimumOrderAmount(long id, MinimumOrderAmountRequest request) {
@@ -41,6 +43,7 @@ public class CouponService {
         coupon.changeMinimumOrderAmount(minimumOrderAmount);
     }
 
+    @Retry
     @Transactional
     @CachePut(value = "coupons", key = "#p0")
     public void updateCouponDiscountAmount(long id, DiscountAmountRequest request) {

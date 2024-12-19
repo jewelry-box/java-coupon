@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import org.hibernate.annotations.DynamicUpdate;
 import coupon.CouponException;
 
@@ -49,6 +50,9 @@ public class Coupon {
 
     @Embedded
     private Term term;
+
+    @Version
+    private Long version;
 
     protected Coupon() {
     }

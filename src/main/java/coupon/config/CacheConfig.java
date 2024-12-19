@@ -27,7 +27,8 @@ public class CacheConfig {
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(getObjectMapper())))
-                .entryTtl(TTL);
+                .entryTtl(TTL)
+                .disableCachingNullValues();
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(cacheConfiguration)

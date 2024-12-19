@@ -46,6 +46,7 @@ public class MemberCouponService {
         }
     }
 
+    @Transactional
     public List<Coupon> findAllCouponByMember(Member member) {
         List<MemberCoupon> memberCoupons = memberCouponRepository.findAllByMemberId(member.getId());
         return memberCoupons.stream()

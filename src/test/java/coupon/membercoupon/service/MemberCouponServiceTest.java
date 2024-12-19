@@ -2,9 +2,11 @@ package coupon.membercoupon.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import coupon.CouponException;
 import coupon.ServiceTest;
 import coupon.coupon.domain.Coupon;
@@ -20,7 +22,13 @@ class MemberCouponServiceTest extends ServiceTest {
 
     @Autowired
     private MemberCouponService memberCouponService;
+    @Autowired
+    private CacheManager cacheManager;
 
+    @AfterEach
+    void tearDown() {
+        cacheManager.getCache("coupons").clear();
+    }
     @DisplayName("사용자에게 쿠폰을 발급한다.")
     @Test
     void issueCoupon() {

@@ -31,7 +31,6 @@ public class CouponService {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new GlobalCustomException(ErrorMessage.COUPON_NOT_FOUND));
         coupon.updateDiscountAmount(discountAmount);
-        couponRepository.save(coupon);
         couponCacheManager.update(coupon);
     }
 
@@ -41,7 +40,6 @@ public class CouponService {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new GlobalCustomException(ErrorMessage.COUPON_NOT_FOUND));
         coupon.updateMinimumOrderPrice(minimumOrderPrice);
-        couponRepository.save(coupon);
         couponCacheManager.update(coupon);
     }
 

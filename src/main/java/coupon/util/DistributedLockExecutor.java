@@ -25,12 +25,9 @@ public class DistributedLockExecutor {
         Method method = signature.getMethod();
 
         DistributedLock distributedLock = method.getAnnotation(DistributedLock.class);
-        Object[] args = proceedingJoinPoint.getArgs();
-        Parameter[] parameters = method.getParameters();
-        String lockName = resolveLockName(distributedLock.lockName(), parameters, args);
+        String lockName = resolveLockName(proceedingJoinPoint, distributedLock.lockName());
 
         RLock rLock = redissonClient.getLock(lockName);
-
         try {
             boolean canLock = rLock.tryLock(distributedLock.waitTime(), distributedLock.leaseTime(),
                     distributedLock.timeUnit());
@@ -45,7 +42,13 @@ public class DistributedLockExecutor {
         }
     }
 
-    private String resolveLockName(String lockNameTemplate, Parameter[] parameters, Object[] args) {
+    private String resolveLockName(ProceedingJoinPoint proceedingJoinPoint,
+                                   String lockNameTemplate) {
+        MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
+        Method method = signature.getMethod();
+        Object[] args = proceedingJoinPoint.getArgs();
+        Parameter[] parameters = method.getParameters();
+
         for (int i = 0; i < parameters.length; i++) {
             String paramName = parameters[i].getName();
             lockNameTemplate = lockNameTemplate.replace("{" + paramName + "}", args[i].toString());

@@ -19,10 +19,12 @@ import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
 @Table(name = "coupon")
+@DynamicUpdate
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Coupon extends BaseTime {
 
@@ -68,6 +70,16 @@ public class Coupon extends BaseTime {
         this.minimumOrderPrice = minimumOrderPrice;
         this.category = category;
         this.issuePeriod = issuePeriod;
+    }
+
+    public void updateDiscountAmount(DiscountAmount discountAmount) {
+        validateDiscountRate(discountAmount, this.minimumOrderPrice);
+        this.discountAmount = discountAmount;
+    }
+
+    public void updateMinimumOrderPrice(MinimumOrderPrice minimumOrderPrice) {
+        validateDiscountRate(this.discountAmount, minimumOrderPrice);
+        this.minimumOrderPrice = minimumOrderPrice;
     }
 
     private void validateDiscountRate(DiscountAmount discountAmount, MinimumOrderPrice minimumOrderPrice) {

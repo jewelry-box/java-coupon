@@ -1,9 +1,12 @@
 package coupon.service;
 
 import coupon.domain.Coupon;
+import coupon.domain.vo.DiscountAmount;
+import coupon.domain.vo.MinimumOrderPrice;
 import coupon.exception.ErrorMessage;
 import coupon.exception.GlobalCustomException;
 import coupon.repository.CouponRepository;
+import coupon.util.DistributedLock;
 import coupon.util.WriterDbReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,8 +26,20 @@ public class CouponService {
     }
 
     @Transactional
-    public void update(Coupon coupon) {
-        couponRepository.save(coupon);
+    @DistributedLock(lockName = "coupon-{couponId}")
+    public void updateDiscountAmount(DiscountAmount discountAmount, Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new GlobalCustomException(ErrorMessage.COUPON_NOT_FOUND));
+        coupon.updateDiscountAmount(discountAmount);
+        couponCacheManager.update(coupon);
+    }
+
+    @Transactional
+    @DistributedLock(lockName = "coupon-{couponId}")
+    public void updateMinimumOrderPrice(MinimumOrderPrice minimumOrderPrice, Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new GlobalCustomException(ErrorMessage.COUPON_NOT_FOUND));
+        coupon.updateMinimumOrderPrice(minimumOrderPrice);
         couponCacheManager.update(coupon);
     }
 

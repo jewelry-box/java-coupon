@@ -1,4 +1,4 @@
-create database if not exists coupon
+create database if not exists coupon;
 use coupon;
 
 create table if not exists coupon
@@ -9,7 +9,8 @@ create table if not exists coupon
     minimum_order_price DECIMAL(10, 2) NOT NULL,
     coupon_category     VARCHAR(50)    NOT NULL,
     issue_started_at    DATETIME      NOT NULL,
-    issue_ended_at      DATETIME      NOT NULL
+    issue_ended_at      DATETIME      NOT NULL,
+    version             INT           NOT NULL
 ) engine = InnoDB;
 
 create table if not exists member_coupon

@@ -45,8 +45,7 @@ public class CouponService {
 
     @Transactional
     public void updateCouponField(Long couponId, Consumer<Coupon> updateField) {
-        Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. couponId: %d ".formatted(couponId)));
+        Coupon coupon = getCouponForce(couponId);
         updateField.accept(coupon);
     }
 

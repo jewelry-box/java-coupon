@@ -11,4 +11,6 @@ done
 
 /usr/bin/mysql -uroot -p'root' -S /var/run/mysqld/mysqld.sock -e "flush privileges"
 
+/usr/bin/mysql -uroot -p'root' -S /var/run/mysqld/mysqld.sock -e "CREATE DATABASE IF NOT EXISTS coupon"
+
 /bin/bash

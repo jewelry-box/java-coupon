@@ -20,16 +20,52 @@ public class Fixture {
     }
 
     public static Coupon createCoupon() {
-        return createCoupon("반짝 쿠폰");
+        return createCoupon(
+                "반짝 쿠폰",
+                1000,
+                30000,
+                Category.FOOD,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMonths(1)
+        );
     }
 
     public static Coupon createCoupon(String couponName) {
+        return createCoupon(
+                couponName,
+                1000,
+                30000,
+                Category.FOOD,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMonths(1)
+        );
+    }
+
+    public static Coupon createCoupon(long discountAmount, long minOrderAmount) {
+        return createCoupon(
+                "반짝 쿠폰",
+                discountAmount,
+                minOrderAmount,
+                Category.FOOD,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMonths(1)
+        );
+    }
+
+    public static Coupon createCoupon(
+            String couponName,
+            long discountAmount,
+            long minOrderAmount,
+            Category category,
+            LocalDateTime startAt,
+            LocalDateTime endAt
+    ) {
         return new Coupon(
                 new CouponName(couponName),
-                new DiscountAmount(1000),
-                new MinOrderAmount(30000),
-                Category.FOOD,
-                new IssuablePeriod(LocalDateTime.now(), LocalDateTime.now().plusMonths(1))
+                new DiscountAmount(discountAmount),
+                new MinOrderAmount(minOrderAmount),
+                category,
+                new IssuablePeriod(startAt, endAt)
         );
     }
 }

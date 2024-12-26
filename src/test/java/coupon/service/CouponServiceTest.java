@@ -3,6 +3,7 @@ package coupon.service;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
@@ -12,6 +13,11 @@ import static org.mockito.Mockito.verify;
 import coupon.domain.Coupon;
 import coupon.repository.CouponRepository;
 import coupon.support.Fixture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,43 +40,188 @@ class CouponServiceTest {
     @SpyBean
     private CouponRepository couponRepository;
 
-    @Test
-    void 복제지연테스트() {
-        Coupon saved = couponService.save(Fixture.createCoupon());
+    @Nested
+    class 복제_지연 {
 
-        assertThatCode(() -> couponService.findById(saved.getId()))
-                .doesNotThrowAnyException();
+        @Test
+        void 쿠폰_생성_후_바로_조회시_복제_지연으로_인한_예외가_발생하지_않는다() {
+            Coupon saved = couponService.save(Fixture.createCoupon());
+
+            assertThatCode(() -> couponService.findById(saved.getId()))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        void 조회_시_캐시에_없으면_DB_조회_후_캐시_쓰기한다() {
+            Coupon dbCoupon = couponService.save(Fixture.createCoupon());
+
+            Coupon firstSearch = couponService.findById(dbCoupon.getId());
+
+            Cache couponCache = requireNonNull(cacheManager.getCache(COUPON_CACHE_NAME));
+
+            assertAll(
+                    () -> assertThat(firstSearch.getId()).isEqualTo(dbCoupon.getId()),
+                    () -> verify(couponRepository, atLeastOnce()).findById(dbCoupon.getId()),
+                    () -> assertThat(couponCache.get(dbCoupon.getId(), Coupon.class))
+                            .extracting(Coupon::getId)
+                            .isEqualTo(dbCoupon.getId())
+            );
+        }
+
+        @Test
+        void 조회_시_캐시에_있으면_DB를_조회하지_않는다() {
+            Coupon dbCoupon = couponService.save(Fixture.createCoupon());
+            couponService.findById(dbCoupon.getId());
+
+            clearInvocations(couponRepository);
+
+            Coupon secondSearch = couponService.findById(dbCoupon.getId());
+
+            assertAll(
+                    () -> assertThat(secondSearch.getId()).isEqualTo(dbCoupon.getId()),
+                    () -> verify(couponRepository, never()).findById(dbCoupon.getId())
+            );
+        }
     }
 
-    @Test
-    void 조회_시_캐시에_없으면_DB_조회_후_캐시_쓰기한다() {
-        Coupon dbCoupon = couponService.save(Fixture.createCoupon());
+    @Nested
+    class 쿠폰_금액_수정 {
 
-        Coupon firstSearch = couponService.findById(dbCoupon.getId());
+        @Test
+        void 쿠폰_할인_금액을_변경한다() {
+            Coupon coupon = couponService.save(Fixture.createCoupon());
 
-        Cache couponCache = requireNonNull(cacheManager.getCache(COUPON_CACHE_NAME));
+            couponService.updateDiscountAmount(coupon.getId(), 2000);
 
-        assertAll(
-                () -> assertThat(firstSearch.getId()).isEqualTo(dbCoupon.getId()),
-                () -> verify(couponRepository, atLeastOnce()).findById(dbCoupon.getId()),
-                () -> assertThat(couponCache.get(dbCoupon.getId(), Coupon.class))
-                        .extracting(Coupon::getId)
-                        .isEqualTo(dbCoupon.getId())
-        );
+            Long updatedAmount = couponService.findById(coupon.getId())
+                    .getDiscountAmount()
+                    .getAmount();
+
+            assertThat(updatedAmount).isEqualTo(2000);
+        }
+
+        @Test
+        void 제약조건에_부합하지_않으면_쿠폰_할인_금액을_변경할_수_없다() {
+            Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
+
+            assertThatThrownBy(() -> couponService.updateDiscountAmount(validCoupon.getId(), 500))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void 최소_주문_금액을_변경한다() {
+            Coupon coupon = couponService.save(Fixture.createCoupon());
+
+            couponService.updateMinOrderAmount(coupon.getId(), 25000);
+
+            Long updatedAmount = couponService.findById(coupon.getId())
+                    .getMinOderAmount()
+                    .getAmount();
+
+            assertThat(updatedAmount).isEqualTo(25000);
+        }
+
+        @Test
+        void 제약조건에_부합하지_않으면_최소_주문_금액을_변경할_수_없다() {
+            Coupon validCoupon = couponService.save(Fixture.createCoupon(1000, 30000));
+
+            assertThatThrownBy(() -> couponService.updateMinOrderAmount(validCoupon.getId(), 1000))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
     }
 
-    @Test
-    void 조회_시_캐시에_있으면_DB를_조회하지_않는다() {
-        Coupon dbCoupon = couponService.save(Fixture.createCoupon());
-        couponService.findById(dbCoupon.getId());
 
-        clearInvocations(couponRepository);
+    @Nested
+    class 쿠폰_금액_수정_동시성_테스트 {
 
-        Coupon secondSearch = couponService.findById(dbCoupon.getId());
+        @Test
+        void 사용자_2명이_동시에_쿠폰을_수정하는_경우_제약조건에_부합하지_않으면_예외가_발생한다() throws InterruptedException {
+            long beforeDiscountAmount = 2000;
+            long beforeMinOrderAmount = 30000;
+            Coupon coupon = couponService.save(Fixture.createCoupon(beforeDiscountAmount, beforeMinOrderAmount));
 
-        assertAll(
-                () -> assertThat(secondSearch.getId()).isEqualTo(dbCoupon.getId()),
-                () -> verify(couponRepository, never()).findById(dbCoupon.getId())
-        );
+            int concurrencyCount = 2;
+            ExecutorService executorService = Executors.newFixedThreadPool(concurrencyCount);
+            CountDownLatch countDownLatch = new CountDownLatch(concurrencyCount);
+            AtomicInteger exceptionCount = new AtomicInteger(0);
+
+            long afterDiscountAmount = 1000;
+            long afterMinOrderAmount = 40000;
+
+            // DiscountAmount 변경
+            executorService.submit(() -> {
+                try {
+                    couponService.updateDiscountAmount(coupon.getId(), afterDiscountAmount);
+                } catch (IllegalArgumentException e) {
+                    exceptionCount.incrementAndGet();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+
+            // MinOrderAmount 변경
+            executorService.submit(() -> {
+                try {
+                    couponService.updateMinOrderAmount(coupon.getId(), afterMinOrderAmount);
+                } catch (IllegalArgumentException e) {
+                    exceptionCount.incrementAndGet();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+
+            countDownLatch.await();
+
+            assertThat(exceptionCount.get()).isOne();
+        }
+
+        @Test
+        void 사용자_2명이_동시에_쿠폰을_수정하는_경우_제약조건에_부합하면_예외가_발생하지_않는다() throws InterruptedException {
+            long beforeDiscountAmount = 2000;
+            long beforeMinOrderAmount = 30000;
+            Coupon coupon = couponService.save(Fixture.createCoupon(beforeDiscountAmount, beforeMinOrderAmount));
+
+            int concurrencyCount = 2;
+            ExecutorService executorService = Executors.newFixedThreadPool(concurrencyCount);
+            CountDownLatch countDownLatch = new CountDownLatch(concurrencyCount);
+            AtomicInteger exceptionCount = new AtomicInteger(0);
+
+            long afterDiscountAmount = 2500;
+            long afterMinOrderAmount = 40000;
+
+            // DiscountAmount 변경
+            executorService.submit(() -> {
+                try {
+                    couponService.updateDiscountAmount(coupon.getId(), afterDiscountAmount);
+                } catch (IllegalArgumentException e) {
+                    exceptionCount.incrementAndGet();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+
+            // MinOrderAmount 변경
+            executorService.submit(() -> {
+                try {
+                    couponService.updateMinOrderAmount(coupon.getId(), afterMinOrderAmount);
+                } catch (IllegalArgumentException e) {
+                    exceptionCount.incrementAndGet();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+
+            countDownLatch.await();
+
+            Coupon updatedCoupon = couponService.findById(coupon.getId());
+            long updatedDiscountAmount = updatedCoupon.getDiscountAmount().getAmount();
+            long updatedMinOrderAmount = updatedCoupon.getMinOderAmount().getAmount();
+
+            assertAll(
+                    () -> assertThat(exceptionCount.get()).isZero(),
+                    () -> assertThat(updatedDiscountAmount).isEqualTo(afterDiscountAmount),
+                    () -> assertThat(updatedMinOrderAmount).isEqualTo(afterMinOrderAmount)
+            );
+        }
     }
 }

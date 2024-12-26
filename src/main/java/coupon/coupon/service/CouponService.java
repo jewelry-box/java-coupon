@@ -1,6 +1,11 @@
 package coupon.coupon.service;
 
+import jakarta.persistence.OptimisticLockException;
+import org.hibernate.StaleObjectStateException;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import coupon.cache.CacheService;
@@ -10,7 +15,6 @@ import coupon.coupon.domain.MinimumOrderAmount;
 import coupon.coupon.repository.CouponRepository;
 import coupon.coupon.service.dto.DiscountAmountRequest;
 import coupon.coupon.service.dto.MinimumOrderAmountRequest;
-import coupon.util.Retry;
 
 @Service
 @Transactional(readOnly = true)
@@ -34,8 +38,10 @@ public class CouponService {
         return cacheService.getCoupon(id);
     }
 
-    @Retry
     @Transactional
+    @Retryable(retryFor = {OptimisticLockException.class, ObjectOptimisticLockingFailureException.class, StaleObjectStateException.class},
+            maxAttempts = 4,
+            backoff = @Backoff(delay = 500))
     @CachePut(value = "coupon", key = "#id")
     public Coupon updateCouponMinimumOrderAmount(long id, MinimumOrderAmountRequest request) {
         MinimumOrderAmount minimumOrderAmount = request.toMinimumOrderAmount();
@@ -44,8 +50,10 @@ public class CouponService {
         return coupon;
     }
 
-    @Retry
     @Transactional
+    @Retryable(retryFor = {OptimisticLockException.class, ObjectOptimisticLockingFailureException.class, StaleObjectStateException.class},
+            maxAttempts = 4,
+            backoff = @Backoff(delay = 500))
     @CachePut(value = "coupon", key = "#id")
     public Coupon updateCouponDiscountAmount(long id, DiscountAmountRequest request) {
         DiscountAmount discountAmount = request.toDiscountAmount();

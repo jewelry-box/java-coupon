@@ -250,7 +250,7 @@ class CouponTest {
         // given
         String name = "냥인의쿠폰";
         BigDecimal discountAmount = BigDecimal.valueOf(1_000);
-        BigDecimal minimumOrderPrice = BigDecimal.valueOf(5_000);
+        BigDecimal minimumOrderPrice = BigDecimal.valueOf(10_000);
         CouponCategory couponCategory = CouponCategory.FOOD;
         LocalDateTime issueStartedAt = LocalDateTime.of(2024, 10, 16, 0, 0, 0, 0);
         LocalDateTime issueEndedAt = LocalDateTime.of(2024, 10, 26, 23, 59, 59, 999_999_000);

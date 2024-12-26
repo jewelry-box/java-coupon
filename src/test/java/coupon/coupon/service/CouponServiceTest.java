@@ -29,7 +29,7 @@ public class CouponServiceTest extends ServiceTest {
 
     @AfterEach
     void tearDown() {
-        cacheManager.getCache("coupons").clear();
+        cacheManager.getCache("coupon").clear();
     }
 
     @DisplayName("요청한 쿠폰을 조회한다.")

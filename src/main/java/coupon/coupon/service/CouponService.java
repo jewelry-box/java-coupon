@@ -36,19 +36,21 @@ public class CouponService {
 
     @Retry
     @Transactional
-    @CachePut(value = "coupons", key = "#p0")
-    public void updateCouponMinimumOrderAmount(long id, MinimumOrderAmountRequest request) {
+    @CachePut(value = "coupon", key = "#id")
+    public Coupon updateCouponMinimumOrderAmount(long id, MinimumOrderAmountRequest request) {
         MinimumOrderAmount minimumOrderAmount = request.toMinimumOrderAmount();
         Coupon coupon = cacheService.getCoupon(id);
         coupon.changeMinimumOrderAmount(minimumOrderAmount);
+        return coupon;
     }
 
     @Retry
     @Transactional
-    @CachePut(value = "coupons", key = "#p0")
-    public void updateCouponDiscountAmount(long id, DiscountAmountRequest request) {
+    @CachePut(value = "coupon", key = "#id")
+    public Coupon updateCouponDiscountAmount(long id, DiscountAmountRequest request) {
         DiscountAmount discountAmount = request.toDiscountAmount();
         Coupon coupon = cacheService.getCoupon(id);
         coupon.changeDiscountAmount(discountAmount);
+        return coupon;
     }
 }

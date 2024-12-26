@@ -1,6 +1,5 @@
 package coupon.cache;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import coupon.CouponException;
 import coupon.coupon.domain.Coupon;
@@ -17,12 +16,12 @@ public class CacheService {
         this.couponRepository = couponRepository;
     }
 
-    @Cacheable(value = "coupons", key = "#p0.couponId")
+    //@Cacheable(value = "coupon", key = "#memberCoupon.couponId")
     public Coupon getCoupon(MemberCoupon memberCoupon) {
         return getCouponById(memberCoupon.getCouponId());
     }
 
-    @Cacheable(value = "coupons", key = "#p0")
+    //@Cacheable(value = "coupon", key = "#id")
     public Coupon getCoupon(long id) {
         return getCouponById(id);
     }

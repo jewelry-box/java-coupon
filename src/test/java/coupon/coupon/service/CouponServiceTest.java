@@ -71,6 +71,34 @@ public class CouponServiceTest extends ServiceTest {
         assertThat(couponRepository.findById(coupon.getId())).isNotNull();
     }
 
+    @DisplayName("쿠폰 최소 주문 금액을 수정한다.")
+    @Test
+    void updateCouponMinimumOrderAmount() {
+        // given
+        Coupon coupon = couponRepository.save(CouponFixture.create(1000, 10000));
+        MinimumOrderAmountRequest request = new MinimumOrderAmountRequest(20000);
+
+        // when
+        Coupon updatedCoupon = couponService.updateCouponMinimumOrderAmount(coupon.getId(), request);
+
+        // then
+        assertThat(updatedCoupon.getMinimumOrderAmount()).isEqualTo(request.toMinimumOrderAmount());
+    }
+
+    @DisplayName("쿠폰 할인 금액을 수정한다.")
+    @Test
+    void updateCouponDiscountAmount() {
+        // given
+        Coupon coupon = couponRepository.save(CouponFixture.create(1000, 10000));
+        DiscountAmountRequest request = new DiscountAmountRequest(1500);
+
+        // when
+        Coupon updatedCoupon = couponService.updateCouponDiscountAmount(coupon.getId(), request);
+
+        // then
+        assertThat(updatedCoupon.getDiscountAmount()).isEqualTo(request.toDiscountAmount());
+    }
+
     @DisplayName("동시에 쿠폰 할인 금액과 최소 주문 금액을 수정할 때 제약 조건을 위반하지 않으면 수정에 성공한다.")
     @Test
     void updateCouponConcurrently() {

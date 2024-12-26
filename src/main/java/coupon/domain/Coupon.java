@@ -43,6 +43,11 @@ public class Coupon {
     @Column(nullable = false)
     private IssuablePeriod issuablePeriod;
 
+    public Coupon(CouponName name, DiscountAmount discountAmount, MinOrderAmount minOderAmount, Category category,
+                  IssuablePeriod issuablePeriod) {
+        this(null, name, discountAmount, minOderAmount, category, issuablePeriod);
+    }
+
     private Coupon(Long id, CouponName name, DiscountAmount discountAmount, MinOrderAmount minOderAmount,
                   Category category, IssuablePeriod issuablePeriod) {
         validate(discountAmount, minOderAmount);
@@ -52,19 +57,6 @@ public class Coupon {
         this.minOderAmount = minOderAmount;
         this.category = category;
         this.issuablePeriod = issuablePeriod;
-    }
-
-    public Coupon(CouponName name, DiscountAmount discountAmount, MinOrderAmount minOderAmount, Category category,
-                  IssuablePeriod issuablePeriod) {
-        this(null, name, discountAmount, minOderAmount, category, issuablePeriod);
-    }
-
-    private void validate(DiscountAmount discountAmount, MinOrderAmount minOderAmount) {
-        int discountRate = (int) ((double) discountAmount.getAmount() / minOderAmount.getAmount() * 100);
-        if (discountRate < MIN_DISCOUNT_RATE || discountRate > MAX_DISCOUNT_RATE) {
-            throw new IllegalArgumentException(
-                    "할인율은 " + MIN_DISCOUNT_RATE + "% 이상 " + MAX_DISCOUNT_RATE + "% 이하여야 합니다.");
-        }
     }
 
     public Coupon updateDiscountAmount(DiscountAmount discountAmount) {
@@ -77,5 +69,13 @@ public class Coupon {
         validate(discountAmount, minOderAmount);
         this.minOderAmount = minOderAmount;
         return this;
+    }
+
+    private void validate(DiscountAmount discountAmount, MinOrderAmount minOrderAmount) {
+        int discountRate = (int) ((double) discountAmount.getAmount() / minOrderAmount.getAmount() * 100);
+        if (discountRate < MIN_DISCOUNT_RATE || discountRate > MAX_DISCOUNT_RATE) {
+            throw new IllegalArgumentException(
+                    "할인율은 " + MIN_DISCOUNT_RATE + "% 이상 " + MAX_DISCOUNT_RATE + "% 이하여야 합니다.");
+        }
     }
 }

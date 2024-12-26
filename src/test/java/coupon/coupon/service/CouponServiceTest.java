@@ -19,6 +19,7 @@ import coupon.fixture.CouponFixture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public class CouponServiceTest extends ServiceTest {
 
@@ -82,7 +83,7 @@ public class CouponServiceTest extends ServiceTest {
         Coupon updatedCoupon = couponService.updateCouponMinimumOrderAmount(coupon.getId(), request);
 
         // then
-        assertThat(updatedCoupon.getMinimumOrderAmount()).isEqualTo(request.toMinimumOrderAmount());
+        assertThat(updatedCoupon.getMinimumOrderAmount().intValue()).isEqualTo(20000);
     }
 
     @DisplayName("쿠폰 할인 금액을 수정한다.")
@@ -96,7 +97,7 @@ public class CouponServiceTest extends ServiceTest {
         Coupon updatedCoupon = couponService.updateCouponDiscountAmount(coupon.getId(), request);
 
         // then
-        assertThat(updatedCoupon.getDiscountAmount()).isEqualTo(request.toDiscountAmount());
+        assertThat(updatedCoupon.getDiscountAmount().intValue()).isEqualTo(1500);
     }
 
     @DisplayName("동시에 쿠폰 할인 금액과 최소 주문 금액을 수정할 때 제약 조건을 위반하지 않으면 수정에 성공한다.")
@@ -117,6 +118,11 @@ public class CouponServiceTest extends ServiceTest {
             future.get();
             future2.get();
         });
+        Coupon updatedCoupon = couponService.getCoupon(coupon.getId());
+        assertAll(
+                () -> assertThat(updatedCoupon.getDiscountAmount().intValue()).isEqualTo(2000),
+                () -> assertThat(updatedCoupon.getMinimumOrderAmount().intValue()).isEqualTo(20000)
+        );
     }
 
     @DisplayName("동시에 쿠폰 할인 금액과 최소 주문 금액을 수정할 때 제약 조건을 위반할 수 없다.")
@@ -140,6 +146,11 @@ public class CouponServiceTest extends ServiceTest {
             future2.get();
         }).hasCauseInstanceOf(CouponException.class)
                 .hasMessageContaining("할인율은 3% 이상, 20% 이하이어야 합니다.");
+        Coupon coupon = couponService.getCoupon(couponId);
+        assertAll(
+                () -> assertThat(coupon.getDiscountAmount().intValue()).isEqualTo(2000),
+                () -> assertThat(coupon.getMinimumOrderAmount().intValue()).isEqualTo(10000)
+        );
     }
 }
 

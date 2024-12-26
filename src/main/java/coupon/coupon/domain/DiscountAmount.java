@@ -75,4 +75,8 @@ public class DiscountAmount {
     public int hashCode() {
         return Objects.hash(discountAmount);
     }
+
+    public BigDecimal getDiscountAmount() {
+        return discountAmount;
+    }
 }

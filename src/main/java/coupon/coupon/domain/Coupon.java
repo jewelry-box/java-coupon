@@ -103,11 +103,11 @@ public class Coupon {
         return id;
     }
 
-    public DiscountAmount getDiscountAmount() {
-        return discountAmount;
+    public BigDecimal getDiscountAmount() {
+        return discountAmount.getDiscountAmount();
     }
 
-    public MinimumOrderAmount getMinimumOrderAmount() {
-        return minimumOrderAmount;
+    public BigDecimal getMinimumOrderAmount() {
+        return minimumOrderAmount.getMinimumOrderAmount();
     }
 }

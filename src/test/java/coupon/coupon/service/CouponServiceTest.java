@@ -7,11 +7,13 @@ import coupon.coupon.domain.CouponCategory;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.jdbc.Sql;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -66,12 +68,25 @@ class CouponServiceTest {
         Coupon savedCoupon = couponService.createCoupon(coupon);
 
         // when
+        AtomicReference<Exception> exceptionFromUser1 = new AtomicReference<>();
+        AtomicReference<Exception> exceptionFromUser2 = new AtomicReference<>();
         // 사용자 1: 쿠폰 할인 금액 변경 기능을 이용하여 할인 금액을 1,000원으로 수정
-        Thread user1 = new Thread(() ->
-                couponService.updateDiscountAmount(savedCoupon.getId(), BigDecimal.valueOf(1_000)));
+        Thread user1 = new Thread(() -> {
+            try {
+                couponService.updateDiscountAmount(savedCoupon.getId(), BigDecimal.valueOf(1_000));
+            } catch (Exception e) {
+                exceptionFromUser1.set(e);
+            }
+        });
         // 사용자 2: 쿠폰 최소 주문 금액 변경 기능을 이용하여 최소 주문 금액을 40,000원으로 수정
-        Thread user2 = new Thread(() ->
-                couponService.updateMinimumOrderPrice(savedCoupon.getId(), BigDecimal.valueOf(40_000)));
+        Thread user2 = new Thread(() -> {
+            try {
+                couponService.updateMinimumOrderPrice(savedCoupon.getId(), BigDecimal.valueOf(40_000));
+            } catch (Exception e) {
+                exceptionFromUser2.set(e);
+            }
+        });
+
         user1.start();
         user2.start();
 
@@ -79,6 +94,12 @@ class CouponServiceTest {
         user2.join();
 
         // then
+        if (exceptionFromUser1.get() != null) {
+            assertThat(exceptionFromUser1.get()).isInstanceOf(ObjectOptimisticLockingFailureException.class);
+        }
+        if (exceptionFromUser2.get() != null) {
+            assertThat(exceptionFromUser2.get()).isInstanceOf(ObjectOptimisticLockingFailureException.class);
+        }
         Coupon updatedCoupon = couponService.getCouponForce(savedCoupon.getId());
         int discountRate = updatedCoupon.getDiscountAmount()
                 .multiply(BigDecimal.valueOf(100))

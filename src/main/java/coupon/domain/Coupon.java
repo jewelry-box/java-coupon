@@ -67,13 +67,13 @@ public class Coupon {
         }
     }
 
-    public Coupon setDiscountAmount(DiscountAmount discountAmount) {
+    public Coupon updateDiscountAmount(DiscountAmount discountAmount) {
         validate(discountAmount, minOderAmount);
         this.discountAmount = discountAmount;
         return this;
     }
 
-    public Coupon setMinOrderAmount(MinOrderAmount minOderAmount) {
+    public Coupon updateMinOrderAmount(MinOrderAmount minOderAmount) {
         validate(discountAmount, minOderAmount);
         this.minOderAmount = minOderAmount;
         return this;

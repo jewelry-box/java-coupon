@@ -51,7 +51,7 @@ class CouponTest {
                     ISSUABLE_PERIOD);
 
             DiscountAmount invalidDiscountAmount = new DiscountAmount(6500);
-            assertThatThrownBy(() -> coupon.setDiscountAmount(invalidDiscountAmount))
+            assertThatThrownBy(() -> coupon.updateDiscountAmount(invalidDiscountAmount))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("할인율은 3% 이상 20% 이하여야 합니다.");
         }
@@ -64,7 +64,7 @@ class CouponTest {
                     ISSUABLE_PERIOD);
 
             DiscountAmount validDiscountAmount = new DiscountAmount(2000);
-            coupon.setDiscountAmount(validDiscountAmount);
+            coupon.updateDiscountAmount(validDiscountAmount);
 
             Long updatedAmount = coupon.getDiscountAmount().getAmount();
             assertThat(updatedAmount).isEqualTo(2000);
@@ -82,7 +82,7 @@ class CouponTest {
                     ISSUABLE_PERIOD);
 
             MinOrderAmount invalidMinOrderAmount = new MinOrderAmount(100000);
-            assertThatThrownBy(() -> coupon.setMinOrderAmount(invalidMinOrderAmount))
+            assertThatThrownBy(() -> coupon.updateMinOrderAmount(invalidMinOrderAmount))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("할인율은 3% 이상 20% 이하여야 합니다.");
         }
@@ -95,7 +95,7 @@ class CouponTest {
                     ISSUABLE_PERIOD);
 
             MinOrderAmount validMinOrderAmount = new MinOrderAmount(40000);
-            coupon.setMinOrderAmount(validMinOrderAmount);
+            coupon.updateMinOrderAmount(validMinOrderAmount);
 
             Long updatedAmount = coupon.getMinOderAmount().getAmount();
             assertThat(updatedAmount).isEqualTo(40000);

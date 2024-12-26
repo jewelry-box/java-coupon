@@ -23,14 +23,14 @@ public class CouponWriter {
     public Coupon updateDiscountAmount(long couponId, long amount) {
         DiscountAmount discountAmount = new DiscountAmount(amount);
         Coupon coupon = findCoupon(couponId);
-        return coupon.setDiscountAmount(discountAmount);
+        return coupon.updateDiscountAmount(discountAmount);
     }
 
     @Transactional
     public Coupon updateMinOrderAmount(long couponId, long amount) {
         MinOrderAmount minOrderAmount = new MinOrderAmount(amount);
         Coupon coupon = findCoupon(couponId);
-        return coupon.setMinOrderAmount(minOrderAmount);
+        return coupon.updateMinOrderAmount(minOrderAmount);
     }
 
     private Coupon findCoupon(long couponId) {
